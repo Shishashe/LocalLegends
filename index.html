@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LocalLegends — Your Neighbour's Honest Recommendation</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue:      #1A56DB;
+  --blue-l:    #EFF6FF;
+  --blue-b:    rgba(26,86,219,.18);
+  --ink:       #111827;
+  --mid:       #6B7280;
+  --light:     #9CA3AF;
+  --bg:        #FFFFFF;
+  --soft:      #F9FAFB;
+  --cream:     #F3F4F6;
+  --border:    #E5E7EB;
+  --green:     #059669;
+  --red:       #DC2626;
+  --sh-sm:     0 1px 3px rgba(0,0,0,.08);
+  --sh-md:     0 4px 20px rgba(0,0,0,.08);
+  --sh-lg:     0 16px 48px rgba(26,86,219,.15),0 4px 16px rgba(0,0,0,.06);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:'DM Sans',sans-serif;overflow-x:hidden}
+
+/* Dot grid */
+.dg{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--g,6px)}
+.d{border-radius:50%;width:var(--s,8px);height:var(--s,8px)}
+.d-off{background:rgba(26,86,219,.15)}
+.d-on{background:var(--blue)}
+
+/* Helpers */
+.container{max-width:1080px;margin:0 auto;padding:0 28px}
+.tag{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--blue);margin-bottom:14px}
+.tag::before{content:'';width:18px;height:2.5px;background:var(--blue);border-radius:2px}
+
+/* ── NAV ── */
+nav{position:sticky;top:0;z-index:200;background:rgba(255,255,255,.96);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+.nav-in{max-width:1080px;margin:0 auto;padding:0 28px;height:68px;display:flex;align-items:center;justify-content:space-between}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.nav-loc{font-size:8px;font-weight:700;letter-spacing:.28em;color:var(--blue);text-transform:uppercase}
+.nav-leg{font-family:'Outfit',sans-serif;font-size:19px;font-weight:800;color:var(--ink);letter-spacing:-.02em}
+.nav-links{display:flex;gap:28px}
+.nav-links a{font-size:14px;color:var(--mid);text-decoration:none;transition:color .2s}
+.nav-links a:hover{color:var(--ink)}
+.nav-btns{display:flex;gap:8px}
+.btn-ghost{padding:9px 20px;border:1.5px solid var(--border);color:var(--ink);font-size:13px;font-weight:600;border-radius:100px;text-decoration:none;background:transparent;transition:all .2s;cursor:pointer}
+.btn-ghost:hover{border-color:var(--blue);color:var(--blue)}
+.btn-solid{padding:10px 22px;background:var(--blue);color:#fff;font-size:13px;font-weight:700;border-radius:100px;text-decoration:none;box-shadow:0 2px 10px rgba(26,86,219,.3);transition:all .2s;cursor:pointer}
+.btn-solid:hover{background:#1344b8;transform:translateY(-1px)}
+
+/* ── ANIMATIONS ── */
+@keyframes floatY {0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+@keyframes floatX {0%,100%{transform:translateX(0)}50%{transform:translateX(8px)}}
+@keyframes blobAnim{0%,100%{border-radius:60% 40% 55% 45%/50% 60% 40% 50%}50%{border-radius:40% 60% 45% 55%/60% 40% 60% 40%}}
+@keyframes pulse   {0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+@keyframes fadeUp  {from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── HERO ── */
+.hero{padding:60px 28px 40px;background:var(--bg);overflow:hidden;position:relative;min-height:90vh;display:flex;align-items:center}
+.hero-blob{position:absolute;top:-100px;right:-80px;width:560px;height:560px;background:radial-gradient(circle,rgba(26,86,219,.09) 0%,rgba(99,179,237,.06) 40%,transparent 70%);border-radius:60% 40% 55% 45%/50% 60% 40% 50%;animation:blobAnim 10s ease-in-out infinite;pointer-events:none}
+.hero-grid{max-width:1080px;margin:0 auto;width:100%;display:grid;grid-template-columns:1.1fr 1fr;gap:40px;align-items:center;position:relative;z-index:1}
+.hero-ey{display:inline-flex;align-items:center;gap:8px;padding:7px 16px;background:var(--blue-l);border-radius:100px;font-size:12px;font-weight:700;color:var(--blue);margin-bottom:22px;border:1px solid var(--blue-b)}
+.ey-dot{width:7px;height:7px;border-radius:50%;background:var(--blue);animation:pulse 2s ease-in-out infinite}
+.hero-h1{font-family:'Outfit',sans-serif;font-size:clamp(38px,5.5vw,68px);font-weight:900;line-height:1.04;letter-spacing:-.04em;color:var(--ink);margin-bottom:20px}
+.hero-h1 .bl{color:var(--blue)}
+.hero-h1 .lt{font-weight:300;color:var(--mid)}
+.hero-p{font-size:clamp(14px,1.6vw,17px);font-weight:300;color:var(--mid);line-height:1.8;max-width:460px;margin-bottom:32px}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:32px}
+.btn-hp{display:inline-flex;align-items:center;gap:9px;padding:15px 30px;background:var(--blue);color:#fff;font-size:15px;font-weight:700;border-radius:100px;text-decoration:none;box-shadow:0 4px 20px rgba(26,86,219,.35);transition:all .25s;cursor:pointer;border:none;font-family:'DM Sans',sans-serif}
+.btn-hp:hover{background:#1344b8;transform:translateY(-2px)}
+.btn-hs{display:inline-flex;align-items:center;gap:9px;padding:14px 28px;background:var(--bg);border:1.5px solid var(--border);color:var(--ink);font-size:15px;font-weight:600;border-radius:100px;text-decoration:none;transition:all .25s;cursor:pointer;font-family:'DM Sans',sans-serif}
+.btn-hs:hover{border-color:var(--blue);color:var(--blue);transform:translateY(-2px)}
+.hero-trust{display:inline-flex;align-items:center;background:var(--soft);border:1px solid var(--border);border-radius:100px;padding:8px 20px;margin-bottom:48px}
+.tr-item{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--mid);white-space:nowrap}
+.tr-ck{width:20px;height:20px;border-radius:50%;background:var(--blue-l);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--blue);font-weight:700;flex-shrink:0}
+.tr-dot{width:4px;height:4px;border-radius:50%;background:var(--border);margin:0 14px;flex-shrink:0}
+
+/* Phone mockup */
+.hero-vis{display:flex;justify-content:center;align-items:flex-end;position:relative}
+.phone-bg{position:absolute;width:320px;height:320px;border-radius:50%;background:linear-gradient(135deg,rgba(26,86,219,.08),rgba(99,179,237,.05));top:50%;left:50%;transform:translate(-50%,-52%);z-index:0}
+.phone-wrap{position:relative;z-index:2;animation:floatY 5s ease-in-out infinite}
+.phone{width:248px;background:#1A1A2E;border-radius:40px;padding:12px 12px 12px;box-shadow:var(--sh-lg);overflow:hidden}
+.phone-notch{width:72px;height:20px;background:#1A1A2E;border-radius:0 0 14px 14px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;gap:5px}
+.p-ear{width:22px;height:4px;border-radius:3px;background:#2a2a3e}
+.p-cam{width:7px;height:7px;border-radius:50%;background:#333}
+.phone-screen{background:var(--soft);border-radius:28px;overflow:hidden;height:460px;display:flex;flex-direction:column}
+.app-bar{background:#fff;padding:12px 12px 8px;border-bottom:1px solid var(--border);flex-shrink:0}
+.app-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.app-name{font-family:'Outfit',sans-serif;font-size:13px;font-weight:800;color:var(--ink)}
+.app-name span{color:var(--blue)}
+.app-search{display:flex;align-items:center;gap:6px;background:var(--soft);border:1px solid var(--border);border-radius:100px;padding:6px 12px;font-size:10px;color:var(--light)}
+.app-tabs{display:flex;gap:4px;padding:6px 10px 0;background:#fff;flex-shrink:0}
+.app-tab{padding:5px 10px;border-radius:100px;font-size:10px;font-weight:600;color:var(--light)}
+.app-tab.on{background:var(--blue);color:#fff}
+.app-feed{flex:1;padding:8px;display:flex;flex-direction:column;gap:8px;overflow:hidden}
+.fc{background:#fff;border-radius:12px;padding:9px 10px;border:1px solid var(--border);box-shadow:var(--sh-sm);flex-shrink:0}
+.fc-top{display:flex;align-items:center;gap:7px;margin-bottom:7px}
+.fc-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.fc-name{font-size:10px;font-weight:700;color:var(--ink)}
+.fc-biz{font-size:9px;color:var(--mid)}
+.fc-bdg{margin-left:auto;padding:2px 6px;border-radius:100px;font-size:9px;font-weight:700;background:var(--blue-l);color:var(--blue)}
+.fc-img{width:100%;height:60px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:6px;overflow:hidden}
+.fc-title{font-size:11px;font-weight:700;color:var(--ink);margin-bottom:2px}
+.fc-desc{font-size:9px;color:var(--mid);line-height:1.5}
+.fc-gps{display:inline-flex;align-items:center;gap:3px;margin-top:4px;font-size:9px;font-weight:600;color:var(--green);background:#ECFDF5;padding:2px 6px;border-radius:100px}
+.fc-acts{display:flex;gap:8px;margin-top:5px}
+.fc-act{font-size:9px;color:var(--mid);display:flex;align-items:center;gap:2px}
+.fc-act.b{color:var(--blue);font-weight:700}
+
+/* Float badges */
+.fb{position:absolute;background:#fff;border-radius:12px;padding:9px 13px;box-shadow:0 8px 24px rgba(26,86,219,.12),0 2px 6px rgba(0,0,0,.06);border:1px solid var(--border);z-index:10;white-space:nowrap}
+.fb1{top:24px;left:-110px;animation:floatX 4.2s ease-in-out infinite}
+.fb2{top:45%;right:-104px;transform:translateY(-50%);animation:floatX 4.8s ease-in-out .5s infinite}
+.fb3{bottom:90px;left:-105px;animation:floatX 5.2s ease-in-out 1s infinite}
+.fb-ic{font-size:14px;margin-bottom:2px}
+.fb-t{font-size:11px;font-weight:700;color:var(--ink)}
+.fb-s{font-size:10px;color:var(--mid)}
+.fb-b{color:var(--blue);font-weight:700;font-size:11px}
+
+/* ── STATS ── */
+.stats{background:var(--blue);padding:26px 28px}
+.stats-in{max-width:1080px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+.stat{display:flex;flex-direction:column;align-items:center;padding:8px 16px;border-right:1px solid rgba(255,255,255,.18);text-align:center}
+.stat:last-child{border-right:none}
+.stat-n{font-family:'Outfit',sans-serif;font-size:36px;font-weight:900;color:#fff;line-height:1;letter-spacing:-.02em}
+.stat-l{font-size:12px;color:rgba(255,255,255,.65);font-weight:300;margin-top:4px}
+
+/* ── PROBLEM ── */
+.prob-sec{padding:96px 28px;background:var(--bg)}
+.prob-grid{max-width:1080px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+.prob-h2{font-family:'Outfit',sans-serif;font-size:clamp(26px,3.5vw,44px);font-weight:900;line-height:1.08;letter-spacing:-.03em;margin-bottom:14px}
+.prob-h2 .red{color:var(--red)}
+.prob-p{font-size:15px;font-weight:300;color:var(--mid);line-height:1.8;margin-bottom:24px}
+.prob-items{display:flex;flex-direction:column;gap:10px}
+.pi{display:flex;align-items:flex-start;gap:14px;padding:15px 18px;border-radius:14px;background:var(--soft);border:1px solid var(--border);transition:border-color .2s,transform .2s}
+.pi:hover{border-color:rgba(26,86,219,.2);transform:translateX(4px)}
+.pi-ic{width:38px;height:38px;border-radius:8px;background:var(--blue-l);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.pi-t{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:3px}
+.pi-d{font-size:13px;font-weight:300;color:var(--mid);line-height:1.6}
+@keyframes solGlow{0%,100%{box-shadow:0 0 0 0 rgba(26,86,219,.15)}50%{box-shadow:0 0 0 6px rgba(26,86,219,.0)}}
+.sol{display:flex;gap:12px;padding:16px 18px;background:var(--blue-l);border:1.5px solid var(--blue-b);border-radius:14px;margin-top:4px;animation:solGlow 3s ease-in-out infinite}
+.sol-t{font-size:14px;font-weight:700;color:var(--blue);margin-bottom:3px}
+.sol-d{font-size:13px;font-weight:300;color:var(--blue);opacity:.75;line-height:1.6}
+.sv{display:flex;flex-direction:column;gap:12px}
+.sv-c{padding:24px 26px;border-radius:18px;background:var(--soft);border:1px solid var(--border);transition:all .22s}
+.sv-c:hover{transform:translateY(-4px);box-shadow:var(--sh-md);border-color:rgba(26,86,219,.2)}
+.sv-n{font-family:'Outfit',sans-serif;font-size:52px;font-weight:900;letter-spacing:-.04em;line-height:1;margin-bottom:6px}
+.sv-l{font-size:13px;color:var(--mid);font-weight:300;line-height:1.5}
+.sv-l strong{color:var(--ink);font-weight:600}
+
+/* ── HOW ── */
+.how-sec{padding:96px 28px;background:var(--soft)}
+.sec-hdr{text-align:center;margin-bottom:52px}
+.sec-h2{font-family:'Outfit',sans-serif;font-size:clamp(26px,3.5vw,44px);font-weight:900;letter-spacing:-.03em;line-height:1.08;margin-bottom:10px}
+.sec-h2 .bl{color:var(--blue)}
+.sec-sub{font-size:15px;color:var(--mid);font-weight:300;max-width:460px;margin:0 auto}
+.tracks{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:1080px;margin:0 auto}
+.track{background:var(--bg);border:1px solid var(--border);border-radius:24px;overflow:hidden;box-shadow:var(--sh-sm);transition:box-shadow .25s,transform .25s}
+.track:hover{box-shadow:var(--sh-md);transform:translateY(-3px)}
+.tr-head{padding:20px 26px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border)}
+.t-res .tr-head{background:var(--blue-l)}
+.t-biz .tr-head{background:var(--blue)}
+.th-ic{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.t-res .th-ic{background:rgba(26,86,219,.15)}
+.t-biz .th-ic{background:rgba(255,255,255,.18)}
+.th-ttl{font-family:'Outfit',sans-serif;font-size:17px;font-weight:800}
+.t-res .th-ttl{color:var(--blue)}
+.t-biz .th-ttl{color:#fff}
+.th-sub{font-size:12px;font-weight:300}
+.t-res .th-sub{color:var(--blue);opacity:.7}
+.t-biz .th-sub{color:rgba(255,255,255,.6)}
+.tr-body{padding:24px 26px;display:flex;flex-direction:column;gap:18px}
+.ts{display:flex;gap:14px}
+.ts-n{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;margin-top:1px;background:var(--blue-l);color:var(--blue);border:1.5px solid var(--blue-b)}
+.ts-t{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:3px}
+.ts-d{font-size:13px;font-weight:300;color:var(--mid);line-height:1.6}
+.tr-btn{display:block;text-align:center;margin:0 26px 26px;padding:13px;border-radius:12px;font-size:14px;font-weight:700;text-decoration:none;transition:all .2s;cursor:pointer;border:none;font-family:'DM Sans',sans-serif}
+.t-res .tr-btn{background:var(--blue);color:#fff;box-shadow:0 2px 10px rgba(26,86,219,.3)}
+.t-res .tr-btn:hover{background:#1344b8;transform:translateY(-1px)}
+.t-biz .tr-btn{background:#fff;color:var(--blue)}
+.t-biz .tr-btn:hover{background:var(--blue-l);transform:translateY(-1px)}
+
+/* ── TRUST ── */
+.trust-sec{padding:96px 28px;background:var(--bg)}
+.trust-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;max-width:1080px;margin:0 auto}
+.tc{padding:22px 16px;border-radius:18px;border:1px solid var(--border);background:var(--soft);text-align:center;transition:all .25s}
+.tc:hover{border-color:rgba(26,86,219,.25);transform:translateY(-5px);box-shadow:var(--sh-md)}
+.tc-n{font-family:'Outfit',sans-serif;font-size:32px;font-weight:900;color:var(--blue);line-height:1;margin-bottom:10px}
+.tc-t{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:5px}
+.tc-d{font-size:11px;color:var(--mid);font-weight:300;line-height:1.55}
+
+/* ── FEATURES ── */
+.feat-sec{padding:80px 28px;background:var(--bg)}
+.feat-grid{max-width:1080px;margin:0 auto;display:grid;grid-template-columns:1fr 2fr;gap:48px;align-items:center}
+.feat-h2{font-family:'Outfit',sans-serif;font-size:clamp(30px,4vw,52px);font-weight:900;letter-spacing:-.04em;line-height:1.05;color:var(--ink)}
+.feat-h2 .bl{color:var(--blue)}
+.feat-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.feat-c{padding:22px 18px;border-radius:18px;background:var(--soft);border:1px solid var(--border);transition:all .22s}
+.feat-c:hover{border-color:rgba(26,86,219,.25);transform:translateY(-3px);box-shadow:var(--sh-md)}
+.feat-ic{width:44px;height:44px;border-radius:12px;background:var(--blue-l);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px}
+.feat-t{font-family:'Outfit',sans-serif;font-size:15px;font-weight:800;color:var(--ink);margin-bottom:5px}
+.feat-d{font-size:13px;color:var(--mid);font-weight:300;line-height:1.65}
+
+/* ── PROOF ── */
+.proof-sec{padding:96px 28px;background:var(--soft)}
+.proof-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:1080px;margin:0 auto}
+.proof-c{background:var(--bg);border:1px solid var(--border);border-radius:22px;padding:26px 22px;box-shadow:var(--sh-sm);transition:all .22s}
+.proof-c:hover{transform:translateY(-5px);box-shadow:var(--sh-md);border-color:rgba(26,86,219,.2)}
+.proof-st{color:#F59E0B;font-size:15px;margin-bottom:12px;letter-spacing:2px}
+.proof-q{font-size:14px;font-weight:300;color:var(--mid);line-height:1.75;margin-bottom:18px;font-style:italic}
+.proof-q strong{color:var(--ink);font-style:normal;font-weight:600}
+.proof-line{height:1px;background:var(--border);margin-bottom:14px}
+.proof-auth{display:flex;align-items:center;gap:10px}
+.proof-av{width:40px;height:40px;border-radius:50%;background:var(--blue-l);display:flex;align-items:center;justify-content:center;font-size:17px;border:2px solid var(--blue-b);flex-shrink:0}
+.proof-name{font-size:13px;font-weight:700;color:var(--ink)}
+.proof-role{font-size:11px;color:var(--mid)}
+.proof-bdg{margin-left:auto;padding:4px 9px;background:var(--blue-l);border-radius:100px;font-size:10px;font-weight:700;color:var(--blue);border:1px solid var(--blue-b);white-space:nowrap}
+
+/* ── FINAL CTA ── */
+.cta-sec{padding:80px 28px;background:var(--soft)}
+.cta-box{max-width:1080px;margin:0 auto;background:var(--blue);border-radius:24px;padding:60px 52px;display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;overflow:hidden;position:relative;box-shadow:0 20px 60px rgba(26,86,219,.25)}
+.cta-box::before{content:'';position:absolute;top:-80px;right:-80px;width:340px;height:340px;background:radial-gradient(circle,rgba(255,255,255,.1) 0%,transparent 65%);border-radius:50%;pointer-events:none}
+.cta-m{display:inline-grid;margin-bottom:18px;--g:8px;--s:11px}
+.cta-m .d-off{background:rgba(255,255,255,.25)}
+.cta-m .d-on{background:#fff}
+.cta-h2{font-family:'Outfit',sans-serif;font-size:clamp(24px,3.5vw,42px);font-weight:900;color:#fff;line-height:1.08;letter-spacing:-.03em;margin-bottom:12px}
+.cta-p{font-size:15px;color:rgba(255,255,255,.72);font-weight:300;line-height:1.75}
+.cta-cards{display:flex;flex-direction:column;gap:12px;position:relative;z-index:1}
+.cta-c{padding:18px 22px;border-radius:16px;text-decoration:none;display:flex;align-items:center;gap:14px;transition:all .2s;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;text-align:left}
+.cta-res{background:#fff}
+.cta-res:hover{background:#f0f4ff;transform:translateX(4px)}
+.cta-biz{background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.25)}
+.cta-biz:hover{background:rgba(255,255,255,.2);transform:translateX(4px)}
+.cc-ic{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.cta-res .cc-ic{background:var(--blue-l)}
+.cta-biz .cc-ic{background:rgba(255,255,255,.18)}
+.cc-ttl{font-size:15px;font-weight:800}
+.cta-res .cc-ttl{color:var(--blue)}
+.cta-biz .cc-ttl{color:#fff}
+.cc-sub{font-size:12px;font-weight:300}
+.cta-res .cc-sub{color:var(--mid)}
+.cta-biz .cc-sub{color:rgba(255,255,255,.58)}
+.cc-arr{font-size:18px;margin-left:auto}
+.cta-res .cc-arr{color:var(--blue)}
+.cta-biz .cc-arr{color:rgba(255,255,255,.6)}
+
+/* ── FOOTER ── */
+footer{background:var(--ink);padding:36px 28px}
+.foot-in{max-width:1080px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+.foot-logo{display:flex;align-items:center;gap:10px}
+.foot-n{font-family:'Outfit',sans-serif;font-size:16px;font-weight:800;color:#fff}
+.foot-t{font-size:12px;color:rgba(255,255,255,.3);font-style:italic}
+.foot-links{display:flex;gap:20px}
+.foot-links a{font-size:13px;color:rgba(255,255,255,.38);text-decoration:none;transition:color .2s}
+.foot-links a:hover{color:rgba(255,255,255,.78)}
+.foot-copy{font-size:12px;color:rgba(255,255,255,.22)}
+
+/* ── MODAL ── */
+.modal-ov{display:none;position:fixed;inset:0;z-index:1000;background:rgba(17,24,39,.5);backdrop-filter:blur(4px);align-items:center;justify-content:center;padding:20px}
+.modal-ov.open{display:flex}
+.modal{background:#fff;border-radius:22px;width:100%;max-width:480px;box-shadow:0 24px 64px rgba(0,0,0,.18);overflow:hidden;position:relative}
+@keyframes mIn{from{opacity:0;transform:scale(.95) translateY(12px)}to{opacity:1;transform:none}}
+.modal{animation:mIn .28s ease}
+.modal-tabs{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--border)}
+.m-tab{padding:15px;text-align:center;font-size:14px;font-weight:700;cursor:pointer;border:none;background:var(--soft);color:var(--mid);transition:all .2s;font-family:'DM Sans',sans-serif}
+.m-tab.on{background:#fff;color:var(--blue);border-bottom:2px solid var(--blue)}
+.modal-body{padding:26px 26px 22px}
+.m-title{font-family:'Outfit',sans-serif;font-size:21px;font-weight:800;color:var(--ink);margin-bottom:4px;letter-spacing:-.02em}
+.m-sub{font-size:13px;color:var(--mid);font-weight:300;margin-bottom:20px;line-height:1.5}
+.m-panel{display:none}
+.m-panel.on{display:block}
+.f-row{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.f-grp{margin-bottom:13px}
+.f-lbl{display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px}
+.f-lbl .req{color:var(--blue)}
+.f-in,.f-sel{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--ink);background:var(--soft);outline:none;transition:border-color .2s;appearance:none}
+.f-in:focus,.f-sel:focus{border-color:var(--blue);background:#fff}
+.f-in::placeholder{color:var(--light)}
+.otp-row{display:flex;gap:8px}
+.otp-row .f-in{flex:1}
+.otp-btn{padding:10px 13px;background:var(--blue-l);border:1.5px solid #BFDBFE;border-radius:10px;font-size:12px;font-weight:700;color:var(--blue);cursor:pointer;white-space:nowrap;font-family:'DM Sans',sans-serif;transition:all .2s;flex-shrink:0}
+.otp-btn:hover{background:#DBEAFE}
+.otp-btn:disabled{opacity:.5;cursor:not-allowed}
+.f-submit{width:100%;padding:13px;background:var(--blue);color:#fff;font-size:15px;font-weight:700;border:none;border-radius:12px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;margin-top:4px}
+.f-submit:hover{background:#1344b8;transform:translateY(-1px)}
+.f-submit:disabled{background:#93C5FD;cursor:not-allowed;transform:none}
+.f-note{font-size:11px;color:var(--light);text-align:center;margin-top:9px;line-height:1.5}
+.m-close{position:absolute;top:14px;right:16px;width:30px;height:30px;border-radius:50%;background:var(--cream);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--mid)}
+.m-close:hover{background:var(--border)}
+.m-success{display:none;padding:44px 26px;text-align:center;flex-direction:column;align-items:center;gap:10px}
+.m-success.show{display:flex}
+.suc-ic{width:60px;height:60px;border-radius:50%;background:var(--blue-l);display:flex;align-items:center;justify-content:center;font-size:26px}
+.suc-ttl{font-family:'Outfit',sans-serif;font-size:21px;font-weight:800;color:var(--ink)}
+.suc-msg{font-size:14px;color:var(--mid);font-weight:300;line-height:1.7;max-width:300px}
+.suc-btn{margin-top:6px;padding:11px 30px;background:var(--blue);color:#fff;font-size:14px;font-weight:700;border:none;border-radius:100px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.suc-btn:hover{background:#1344b8}
+
+/* ── LIVE COMMUNITIES ── */
+.live-sec{padding:96px 28px;background:var(--bg)}
+.live-cards{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:1080px;margin:0 auto}
+.live-c{padding:30px 26px;border-radius:24px;background:var(--bg);border:2px solid var(--green);box-shadow:0 4px 24px rgba(5,150,105,.1);transition:all .25s;position:relative;overflow:hidden}
+.live-c::before{content:'';position:absolute;top:-50px;right:-50px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(5,150,105,.06) 0%,transparent 70%);pointer-events:none}
+.live-c:hover{transform:translateY(-5px);box-shadow:0 12px 36px rgba(5,150,105,.15)}
+.lc-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;background:#ECFDF5;border:1px solid rgba(5,150,105,.2);border-radius:100px;font-size:11px;font-weight:700;color:var(--green);margin-bottom:16px}
+.lc-dot{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s ease-in-out infinite}
+.lc-name{font-family:'Outfit',sans-serif;font-size:24px;font-weight:900;color:var(--ink);letter-spacing:-.02em;margin-bottom:4px}
+.lc-loc{font-size:14px;color:var(--mid);font-weight:300;margin-bottom:18px}
+.lc-stats{display:flex;gap:20px;margin-bottom:18px;flex-wrap:wrap}
+.lc-stat{text-align:center}
+.lc-stat-n{font-family:'Outfit',sans-serif;font-size:28px;font-weight:900;color:var(--blue);line-height:1}
+.lc-stat-l{font-size:11px;color:var(--mid);font-weight:400;margin-top:2px}
+.lc-cats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px}
+.lc-cat{padding:4px 10px;background:var(--soft);border:1px solid var(--border);border-radius:100px;font-size:11px;font-weight:500;color:var(--mid)}
+.lc-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 26px;background:var(--green);color:#fff;font-size:14px;font-weight:700;border-radius:100px;text-decoration:none;transition:all .22s;box-shadow:0 2px 12px rgba(5,150,105,.3)}
+.lc-btn:hover{background:#047857;transform:translateY(-2px);box-shadow:0 6px 20px rgba(5,150,105,.35)}
+.coming-c{padding:30px 26px;border-radius:24px;background:var(--soft);border:1.5px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:280px}
+.coming-ic{font-size:40px;margin-bottom:14px;opacity:.5}
+.coming-t{font-family:'Outfit',sans-serif;font-size:18px;font-weight:800;color:var(--ink);margin-bottom:6px}
+.coming-d{font-size:13px;color:var(--mid);font-weight:300;line-height:1.6;max-width:260px;margin-bottom:16px}
+.coming-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:var(--bg);border:1.5px solid var(--border);color:var(--ink);font-size:13px;font-weight:600;border-radius:100px;text-decoration:none;transition:all .22s;cursor:pointer;font-family:'DM Sans',sans-serif;border-style:solid}
+.coming-btn:hover{border-color:var(--blue);color:var(--blue);transform:translateY(-1px)}
+.nav-live{display:flex !important;align-items:center;gap:6px;color:var(--green) !important;font-weight:600 !important}
+.nav-live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0;animation:pulse 2s ease-in-out infinite}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .hero-grid,.prob-grid,.tracks,.cta-box,.feat-grid,.live-cards{grid-template-columns:1fr}
+  .hero-vis{display:none}
+  .trust-cards{grid-template-columns:1fr 1fr}
+  .proof-cards{grid-template-columns:1fr}
+  .stats-in{grid-template-columns:1fr 1fr}
+  .feat-cards{grid-template-columns:1fr}
+  .cta-box{padding:36px 26px}
+  .nav-links{display:none}
+  .hero{min-height:auto;padding-bottom:40px}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-in">
+    <a href="#" class="nav-logo">
+      <div class="dg" style="--g:5px;--s:7px">
+        <div class="d d-off"></div><div class="d d-on"></div><div class="d d-off"></div>
+        <div class="d d-on"></div><div class="d d-on"></div><div class="d d-on"></div>
+        <div class="d d-off"></div><div class="d d-on"></div><div class="d d-off"></div>
+      </div>
+      <div><div class="nav-loc">Local</div><div class="nav-leg">Legends</div></div>
+    </a>
+    <div class="nav-links">
+      <a href="/sjr-fiesta" class="nav-live"><span class="nav-live-dot"></span>Live: SJR Fiesta</a>
+      <a href="#problem">Why LocalLegends</a>
+      <a href="#how">How it works</a>
+      <a href="#trust">Trust</a>
+      <a href="#business">For Business</a>
+    </div>
+    <div class="nav-btns">
+      <button class="btn-ghost" onclick="openModal('resident')">I'm a Resident</button>
+      <button class="btn-solid" onclick="openModal('business')">I'm a Business</button>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-blob"></div>
+  <div class="hero-grid">
+    <div>
+      <div class="hero-ey"><span class="ey-dot"></span>Now launching in Electronic City, Bangalore</div>
+      <h1 class="hero-h1">Your<br>Neighbour's<br><span class="bl">Honest</span><br>Recommendation.<br><span class="lt">Nothing Else.</span></h1>
+      <p class="hero-p">LocalLegends connects verified residents with trusted local businesses. No paid influencers. No fake reviews. Just the people who actually live there.</p>
+      <div class="hero-btns">
+        <button class="btn-hp" onclick="openModal('resident')">🏘️ Join as Resident →</button>
+        <button class="btn-hs" onclick="openModal('business')">🏪 Register Business</button>
+      </div>
+      <div class="hero-trust" style="margin-bottom:0">
+        <div class="tr-item"><div class="tr-ck">✓</div>GPS verified recs</div>
+        <div class="tr-dot"></div>
+        <div class="tr-item"><div class="tr-ck">✓</div>100% local audience</div>
+        <div class="tr-dot"></div>
+        <div class="tr-item"><div class="tr-ck">✓</div>Free to join</div>
+      </div>
+    </div>
+    <div class="hero-vis">
+      <div class="phone-bg"></div>
+      <div class="phone-wrap">
+        <div class="fb fb1"><div class="fb-ic">👑</div><div class="fb-t">Legend status earned!</div><div class="fb-s">Electronic City's Top Food Voice</div></div>
+        <div class="fb fb2"><div class="fb-b">+25 pts</div><div class="fb-t">Neighbour visited!</div><div class="fb-s">Based on your rec 🎉</div></div>
+        <div class="fb fb3"><div class="fb-ic">📍</div><div class="fb-t">Visit verified</div><div class="fb-s">GPS confirmed · 12m away</div></div>
+        <div class="phone">
+          <div class="phone-notch"><div class="p-ear"></div><div class="p-cam"></div></div>
+          <div class="phone-screen">
+            <div class="app-bar">
+              <div class="app-top"><span class="app-name">Local<span>Legends</span></span><span>🔔</span></div>
+              <div class="app-search">🔍 &nbsp;Search in Electronic City…</div>
+            </div>
+            <div class="app-tabs">
+              <div class="app-tab on">All</div><div class="app-tab">Food 🍽️</div><div class="app-tab">Home 🔧</div><div class="app-tab">Health 🏥</div>
+            </div>
+            <div class="app-feed">
+              <div class="fc">
+                <div class="fc-top"><div class="fc-av" style="background:#EFF6FF">👩</div><div><div class="fc-name">Priya M.</div><div class="fc-biz">recommended Spice Garden</div></div><div class="fc-bdg">👑 Legend</div></div>
+                <div class="fc-img" style="background:linear-gradient(135deg,#FEF3C7,#FDE68A)">🍛</div>
+                <div class="fc-title">Best biryani in the area</div>
+                <div class="fc-desc">Authentic Hyderabadi dum. Generous portions.</div>
+                <div class="fc-gps">📍 GPS verified · 3 days ago</div>
+                <div class="fc-acts"><div class="fc-act b">✓ I went here (12)</div><div class="fc-act">👍 Helpful (28)</div></div>
+              </div>
+              <div class="fc">
+                <div class="fc-top"><div class="fc-av" style="background:#EDE9FE">👨</div><div><div class="fc-name">Rahul K.</div><div class="fc-biz">recommended FixIt Pro</div></div><div class="fc-bdg" style="background:#ECFDF5;color:#059669">⭐ Rising</div></div>
+                <div class="fc-title">Reliable plumber — finally!</div>
+                <div class="fc-desc">Fixed our pipe same day. Fair price.</div>
+                <div class="fc-gps">📍 GPS verified · Last week</div>
+                <div class="fc-acts"><div class="fc-act b">✓ I went here (8)</div><div class="fc-act">👍 Helpful (19)</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stats-in">
+    <div class="stat"><div class="stat-n">100%</div><div class="stat-l">Geo-targeted reach</div></div>
+    <div class="stat"><div class="stat-n">5</div><div class="stat-l">Fraud prevention layers</div></div>
+    <div class="stat"><div class="stat-n">167×</div><div class="stat-l">Better ROI vs influencer</div></div>
+    <div class="stat"><div class="stat-n">₹0</div><div class="stat-l">Cash to Legends. Ever.</div></div>
+  </div>
+</div>
+
+<!-- PROBLEM -->
+<section class="prob-sec" id="problem">
+  <div class="prob-grid">
+    <div>
+      <div class="tag">The problem</div>
+      <h2 class="prob-h2">Every recommendation online has a reason to <span class="red">lie.</span></h2>
+      <p class="prob-p">Whether it's a paid influencer or an anonymous reviewer — the incentive to be honest is missing. LocalLegends fixes this at the root.</p>
+      <div class="prob-items">
+        <div class="pi"><div class="pi-ic">📱</div><div><div class="pi-t">Influencers are paid to recommend</div><div class="pi-d">Up to 98% of their audience will never visit your business. Large budgets spent on reach that doesn't convert locally.</div></div></div>
+        <div class="pi"><div class="pi-ic">⭐</div><div><div class="pi-t">Online reviews are unverified</div><div class="pi-d">Anyone from anywhere can post. Fake reviews are rampant and impossible to detect.</div></div></div>
+        <div class="sol"><span style="font-size:20px;flex-shrink:0">✓</span><div><div class="sol-t">LocalLegends solves both</div><div class="sol-d">GPS-verified visit + real identity + neighbourhood accountability. Fraud is structurally prevented.</div></div></div>
+      </div>
+    </div>
+    <div class="sv">
+      <div class="sv-c"><div class="sv-n" style="color:var(--red)">~98%</div><div class="sv-l">of a national influencer's audience <strong>will never visit</strong> the local business being promoted<span style="display:block;font-size:10px;margin-top:6px;color:var(--light)">Based on geo-distribution of typical Indian macro-influencer audiences vs a pin-code specific business</span></div></div>
+      <div class="sv-c"><div class="sv-n" style="color:var(--blue)">100%</div><div class="sv-l">of LocalLegends viewers <strong>live within the same neighbourhood</strong> as the business</div></div>
+      <div class="sv-c"><div class="sv-n" style="color:var(--blue)">167×</div><div class="sv-l">better cost per <strong>relevant local viewer</strong> vs macro influencer campaigns<span style="display:block;font-size:10px;margin-top:6px;color:var(--light)">Avg influencer CPM ÷ local audience ratio (~0.6%) vs LocalLegends 100% local reach</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="how-sec" id="how">
+  <div class="container">
+    <div class="sec-hdr">
+      <div class="tag" style="justify-content:center;margin-left:auto;margin-right:auto;display:flex">How it works</div>
+      <h2 class="sec-h2">Simple for <span class="bl">residents</span>. Powerful for <span class="bl">businesses</span>.</h2>
+      <p class="sec-sub">Two audiences, one platform. Both benefit from verified neighbourhood trust.</p>
+    </div>
+    <div class="tracks">
+      <div class="track t-res" id="resident">
+        <div class="tr-head"><div class="th-ic">🏘️</div><div><div class="th-ttl">For Residents</div><div class="th-sub">Free to join</div></div></div>
+        <div class="tr-body">
+          <div class="ts"><div class="ts-n">1</div><div><div class="ts-t">Verify your address</div><div class="ts-d">Sign up with phone + pin code. GPS confirms you're a real resident. One account per device.</div></div></div>
+          <div class="ts"><div class="ts-n">2</div><div><div class="ts-t">Visit, then recommend</div><div class="ts-d">App confirms your GPS presence at the business. Record a 30-second honest video recommendation.</div></div></div>
+          <div class="ts"><div class="ts-n">3</div><div><div class="ts-t">Earn your Legend status</div><div class="ts-d">Every neighbour your rec sends to a business earns you points. Scout → Rising → Legend → Icon.</div></div></div>
+        </div>
+        <button class="tr-btn" onclick="openModal('resident')">Sign up as a Resident →</button>
+      </div>
+      <div class="track t-biz" id="business">
+        <div class="tr-head"><div class="th-ic">🏪</div><div><div class="th-ttl">For Businesses</div><div class="th-sub">From ₹499/month</div></div></div>
+        <div class="tr-body">
+          <div class="ts"><div class="ts-n">1</div><div><div class="ts-t">Claim your business profile</div><div class="ts-d">Create your verified listing with photos and category. Free to start, no setup fee.</div></div></div>
+          <div class="ts"><div class="ts-n">2</div><div><div class="ts-t">Neighbours start recommending</div><div class="ts-d">Verified residents who visited post honest video recs directly to their neighbourhood feed.</div></div></div>
+          <div class="ts"><div class="ts-n">3</div><div><div class="ts-t">Upgrade for priority reach</div><div class="ts-d">Featured placement, full analytics, and download rec videos to repost on your Instagram.</div></div></div>
+        </div>
+        <button class="tr-btn" onclick="openModal('business')">Register your Business →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST -->
+<section class="trust-sec" id="trust">
+  <div class="container">
+    <div class="sec-hdr">
+      <div class="tag" style="justify-content:center;margin-left:auto;margin-right:auto;display:flex">Why trust us</div>
+      <h2 class="sec-h2">Fraud is <span class="bl">structurally prevented</span>.<br>Not just moderated.</h2>
+      <p class="sec-sub">Five independent layers make fake reviews expensive, detectable, and pointless.</p>
+    </div>
+    <div class="trust-cards">
+      <div class="tc"><div class="tc-n">1</div><div class="tc-t">GPS Visit Check</div><div class="tc-d">Phone must be at the business. No visit, no review. Period.</div></div>
+      <div class="tc"><div class="tc-n">2</div><div class="tc-t">Social Graph</div><div class="tc-d">Friend rings auto-flagged if reviewers share contacts.</div></div>
+      <div class="tc"><div class="tc-n">3</div><div class="tc-t">Diversity Score</div><div class="tc-d">One-time reviewers carry near-zero weight in rankings.</div></div>
+      <div class="tc"><div class="tc-n">4</div><div class="tc-t">Device Lock</div><div class="tc-d">One device, one account. Duplicates blocked instantly.</div></div>
+      <div class="tc"><div class="tc-n">5</div><div class="tc-t">Real Identity</div><div class="tc-d">Your neighbours know your name. Lying has a real cost.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="feat-sec">
+  <div class="feat-grid">
+    <div>
+      <div class="tag">What you get</div>
+      <h2 class="feat-h2">That's The Way To <span class="bl">Trust!</span></h2>
+    </div>
+    <div class="feat-cards">
+      <div class="feat-c"><div class="feat-ic">🌍</div><div class="feat-t">100% Local Reach</div><div class="feat-d">Every viewer lives within your pin code. Zero wasted reach.</div></div>
+      <div class="feat-c"><div class="feat-ic">📍</div><div class="feat-t">GPS Verified Recs</div><div class="feat-d">Each poster was physically at your business before they post.</div></div>
+      <div class="feat-c"><div class="feat-ic">👑</div><div class="feat-t">Legend Status</div><div class="feat-d">The best local voices rise to the top naturally through genuine recs.</div></div>
+      <div class="feat-c"><div class="feat-ic">🎥</div><div class="feat-t">Video-first Recs</div><div class="feat-d">30-second honest videos — more trusted than any star rating.</div></div>
+      <div class="feat-c"><div class="feat-ic">📊</div><div class="feat-t">Business Analytics</div><div class="feat-d">See who viewed, who acted, and which Legends drive the most visits.</div></div>
+      <div class="feat-c"><div class="feat-ic">🛡️</div><div class="feat-t">5-layer Fraud Guard</div><div class="feat-d">Structural prevention — not just moderation. The most trusted local platform.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PROOF -->
+<section class="proof-sec">
+  <div class="container">
+    <div class="sec-hdr">
+      <div class="tag" style="justify-content:center;margin-left:auto;margin-right:auto;display:flex">What neighbours say</div>
+      <h2 class="sec-h2">Real people. <span class="bl">Real recommendations.</span></h2>
+    </div>
+    <div class="proof-cards">
+      <div class="proof-c"><div class="proof-st">★★★★★</div><div class="proof-q">"After two years of random googling, I finally have a go-to skin doctor. <strong>Recommended right here by a neighbour</strong>. No more guessing."</div><div class="proof-line"></div><div class="proof-auth"><div class="proof-av">🧑</div><div><div class="proof-name">Arun T.</div><div class="proof-role">SJR Fiesta Homes</div></div><div class="proof-bdg">Top Contributor 👑</div></div></div>
+      <div class="proof-c"><div class="proof-st">★★★★★</div><div class="proof-q">"Needed a carpenter urgently — <strong>found a number in under a minute</strong>. He came the next morning. I've added 3 contacts myself now. It's the group chat, but actually searchable."</div><div class="proof-line"></div><div class="proof-auth"><div class="proof-av">👩</div><div><div class="proof-name">Shalini P.</div><div class="proof-role">SJR Fiesta Homes</div></div><div class="proof-bdg">Rising Legend ⭐</div></div></div>
+      <div class="proof-c"><div class="proof-st">★★★★★</div><div class="proof-q">"I recommended a dentist to two neighbours last month. Both messaged me asking how I found it. <strong>That's when I knew this was actually working.</strong>"</div><div class="proof-line"></div><div class="proof-auth"><div class="proof-av">🧑</div><div><div class="proof-name">Nikhil J.</div><div class="proof-role">SJR Fiesta Homes</div></div><div class="proof-bdg">Local Legend 👑</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- LIVE COMMUNITIES -->
+<section class="live-sec" id="live">
+  <div class="container">
+    <div class="sec-hdr">
+      <div class="tag" style="justify-content:center;margin-left:auto;margin-right:auto;display:flex">Live now</div>
+      <h2 class="sec-h2">Already working in<br><span class="bl">real neighbourhoods.</span></h2>
+      <p class="sec-sub">Not a prototype. Not a pitch deck. Real recommendations from real neighbours, live today.</p>
+    </div>
+    <div class="live-cards">
+      <div class="live-c">
+        <div class="lc-badge"><span class="lc-dot"></span> Live now</div>
+        <div class="lc-name">SJR Fiesta Homes</div>
+        <div class="lc-loc">📍 Electronic City Phase 2, Bangalore</div>
+        <div class="lc-stats">
+          <div class="lc-stat"><div class="lc-stat-n">36</div><div class="lc-stat-l">Recommendations</div></div>
+          <div class="lc-stat"><div class="lc-stat-n">19</div><div class="lc-stat-l">Doctors</div></div>
+          <div class="lc-stat"><div class="lc-stat-n">6</div><div class="lc-stat-l">Home Services</div></div>
+          <div class="lc-stat"><div class="lc-stat-n">8</div><div class="lc-stat-l">Categories</div></div>
+        </div>
+        <div class="lc-cats">
+          <span class="lc-cat">🏥 Doctors</span>
+          <span class="lc-cat">🔧 Home Services</span>
+          <span class="lc-cat">🚗 Auto</span>
+          <span class="lc-cat">🎉 Events</span>
+          <span class="lc-cat">🌿 Garden</span>
+          <span class="lc-cat">⚖️ Legal</span>
+        </div>
+        <a href="/sjr-fiesta" class="lc-btn">View directory →</a>
+      </div>
+      <div class="coming-c">
+        <div class="coming-ic">🏘️</div>
+        <div class="coming-t">Your society next?</div>
+        <div class="coming-d">We're expanding across Electronic City and Bangalore. Register your society and we'll set you up in 24 hours.</div>
+        <button class="coming-btn" onclick="openModal('resident')">Register your society →</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-sec" id="waitlist">
+  <div class="cta-box">
+    <div>
+      <div class="dg cta-m"><div class="d d-off"></div><div class="d d-on"></div><div class="d d-off"></div><div class="d d-on"></div><div class="d d-on"></div><div class="d d-on"></div><div class="d d-off"></div><div class="d d-on"></div><div class="d d-off"></div></div>
+      <h2 class="cta-h2">Be the first Local Legend in your neighbourhood.</h2>
+      <p class="cta-p">We're launching in Electronic City, Bangalore first. Join early and earn founding Legend status.</p>
+    </div>
+    <div class="cta-cards">
+      <button class="cta-c cta-res" onclick="openModal('resident')"><div class="cc-ic">🏘️</div><div><div class="cc-ttl">Join as a Resident</div><div class="cc-sub">Free forever · Earn points · Get perks</div></div><div class="cc-arr">→</div></button>
+      <button class="cta-c cta-biz" onclick="openModal('business')"><div class="cc-ic">🏪</div><div><div class="cc-ttl">Register your Business</div><div class="cc-sub">From ₹499/mo · 100% local reach</div></div><div class="cc-arr">→</div></button>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-in">
+    <div class="foot-logo">
+      <div class="dg" style="--g:4px;--s:6px">
+        <div class="d" style="background:rgba(255,255,255,.18)"></div><div class="d" style="background:#4B83F0"></div><div class="d" style="background:rgba(255,255,255,.18)"></div>
+        <div class="d" style="background:#4B83F0"></div><div class="d" style="background:#4B83F0"></div><div class="d" style="background:#4B83F0"></div>
+        <div class="d" style="background:rgba(255,255,255,.18)"></div><div class="d" style="background:#4B83F0"></div><div class="d" style="background:rgba(255,255,255,.18)"></div>
+      </div>
+      <div><div class="foot-n">LocalLegends</div><div class="foot-t">Your neighbour's honest recommendation.</div></div>
+    </div>
+    <div class="foot-links">
+      <a href="/sjr-fiesta" style="color:rgba(5,150,105,.8)">🟢 SJR Fiesta</a>
+      <a href="#problem">Why LocalLegends</a>
+      <a href="#how">How it works</a>
+      <a href="#trust">Trust</a>
+      <a href="#business">For Business</a>
+    </div>
+    <div class="foot-copy">© 2026 LocalLegends · Confidential</div>
+  </div>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-ov" id="modal">
+  <div class="modal" id="modalBox">
+    <button class="m-close" onclick="closeModal()">✕</button>
+    <div class="modal-tabs">
+      <button class="m-tab on" id="tabRes" onclick="switchTab('resident')">🏘️ I'm a Resident</button>
+      <button class="m-tab"    id="tabBiz" onclick="switchTab('business')">🏪 I'm a Business</button>
+    </div>
+
+    <div class="modal-body" id="mBody">
+      <!-- RESIDENT -->
+      <div class="m-panel on" id="pRes">
+        <div class="m-title">Join as a Resident</div>
+        <div class="m-sub">Free forever · Earn points · Get real-world perks from local businesses</div>
+        <form onsubmit="submitForm(event,'resident')">
+          <div class="f-row">
+            <div class="f-grp"><label class="f-lbl">Full name <span class="req">*</span></label><input class="f-in" name="full_name" placeholder="Priya Sharma" required></div>
+            <div class="f-grp"><label class="f-lbl">Email <span class="req">*</span></label><input class="f-in" type="email" name="email" placeholder="priya@gmail.com" required></div>
+          </div>
+          <div class="f-grp">
+            <label class="f-lbl">Mobile number <span class="req">*</span></label>
+            <div class="otp-row">
+              <input class="f-in" type="tel" name="phone" id="rPhone" placeholder="+91 98765 43210" required>
+              <button type="button" class="otp-btn" id="otpBtn" onclick="sendOTP()">Send OTP</button>
+            </div>
+          </div>
+          <div class="f-grp" id="otpGrp" style="display:none"><label class="f-lbl">Enter OTP <span class="req">*</span></label><input class="f-in" name="otp" placeholder="6-digit OTP" maxlength="6"></div>
+          <div class="f-row">
+            <div class="f-grp"><label class="f-lbl">Pin code <span class="req">*</span></label><input class="f-in" name="pincode" placeholder="560100" maxlength="6" required></div>
+            <div class="f-grp"><label class="f-lbl">Area / Locality</label><input class="f-in" name="area" placeholder="Electronic City"></div>
+          </div>
+          <div class="f-grp"><label class="f-lbl">Apartment / Building</label><input class="f-in" name="apartment" placeholder="SJR Fiesta Homes"></div>
+          <div class="f-grp">
+            <label class="f-lbl">How did you hear about us?</label>
+            <select class="f-sel" name="source"><option value="">Select one</option><option>WhatsApp group</option><option>Friend / neighbour</option><option>Instagram / social media</option><option>Google search</option><option>Other</option></select>
+          </div>
+          <button type="submit" class="f-submit" id="rBtn">Join LocalLegends — It's Free →</button>
+          <p class="f-note">No spam. We'll only contact you when LocalLegends launches in your pin code.</p>
+        </form>
+      </div>
+
+      <!-- BUSINESS -->
+      <div class="m-panel" id="pBiz">
+        <div class="m-title">Register your Business</div>
+        <div class="m-sub">Reach 100% local verified customers — from ₹499/mo. No setup fee.</div>
+        <form onsubmit="submitForm(event,'business')">
+          <div class="f-row">
+            <div class="f-grp"><label class="f-lbl">Business name <span class="req">*</span></label><input class="f-in" name="business_name" placeholder="Spice Garden" required></div>
+            <div class="f-grp"><label class="f-lbl">Owner name <span class="req">*</span></label><input class="f-in" name="owner_name" placeholder="Rajan Kumar" required></div>
+          </div>
+          <div class="f-row">
+            <div class="f-grp"><label class="f-lbl">Mobile <span class="req">*</span></label><input class="f-in" type="tel" name="phone" placeholder="+91 98765 43210" required></div>
+            <div class="f-grp"><label class="f-lbl">Email <span class="req">*</span></label><input class="f-in" type="email" name="email" placeholder="owner@business.com" required></div>
+          </div>
+          <div class="f-row">
+            <div class="f-grp"><label class="f-lbl">Category <span class="req">*</span></label>
+              <select class="f-sel" name="category" required><option value="">Select</option><option>Food & Dining</option><option>Home Services</option><option>Health & Wellness</option><option>Beauty & Salons</option><option>Education & Tutors</option><option>Real Estate</option><option>Interior Design</option><option>Legal & Finance</option><option>Local Retail</option><option>Other</option></select>
+            </div>
+            <div class="f-grp"><label class="f-lbl">Pin code <span class="req">*</span></label><input class="f-in" name="pincode" placeholder="560100" maxlength="6" required></div>
+          </div>
+          <div class="f-grp"><label class="f-lbl">Business address</label><input class="f-in" name="address" placeholder="12, 5th Cross, Electronic City Phase 1"></div>
+          <div class="f-grp"><label class="f-lbl">Plan interested in</label>
+            <select class="f-sel" name="plan"><option value="">Not sure yet</option><option>Starter — ₹499/mo</option><option>Growth — ₹1,499/mo</option><option>Pro — ₹4,999/mo</option><option>Enterprise — ₹14,999/mo</option></select>
+          </div>
+          <button type="submit" class="f-submit" id="bBtn">Register My Business →</button>
+          <p class="f-note">Our team will call you within 24 hours to confirm your listing.</p>
+        </form>
+      </div>
+    </div>
+
+    <!-- Success -->
+    <div class="m-success" id="mSuc">
+      <div class="suc-ic" id="sucIc">🎉</div>
+      <div class="suc-ttl" id="sucTtl">You're on the list!</div>
+      <div class="suc-msg" id="sucMsg">We'll be in touch soon.</div>
+      <button class="suc-btn" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPA_URL = 'https://vxgwkfatkfhosgpesqcl.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ4Z3drZmF0a2Zob3NncGVzcWNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM1NTIwNzEsImV4cCI6MjA4OTEyODA3MX0.whcHFHeo8a2LiXaiAyxJn0Cw8WhEm0d-6O4Q-GkNg7Y';
+
+function openModal(type) {
+  document.getElementById('modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  switchTab(type || 'resident');
+  document.getElementById('mSuc').classList.remove('show');
+  document.getElementById('mBody').style.display = '';
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  document.body.style.overflow = '';
+  document.getElementById('otpGrp').style.display = 'none';
+  document.getElementById('otpBtn').disabled = false;
+  document.getElementById('otpBtn').textContent = 'Send OTP';
+  document.getElementById('mSuc').classList.remove('show');
+  document.getElementById('mBody').style.display = '';
+}
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+function switchTab(t) {
+  const isRes = t === 'resident';
+  document.getElementById('tabRes').classList.toggle('on', isRes);
+  document.getElementById('tabBiz').classList.toggle('on', !isRes);
+  document.getElementById('pRes').classList.toggle('on', isRes);
+  document.getElementById('pBiz').classList.toggle('on', !isRes);
+}
+function sendOTP() {
+  const ph = document.getElementById('rPhone').value.trim();
+  if (!ph || ph.replace(/\D/g,'').length < 10) { alert('Please enter a valid mobile number.'); return; }
+  const btn = document.getElementById('otpBtn');
+  btn.disabled = true; btn.textContent = 'Sending…';
+  setTimeout(() => {
+    document.getElementById('otpGrp').style.display = 'block';
+    btn.textContent = 'Resend OTP'; btn.disabled = false;
+  }, 1200);
+}
+async function submitForm(e, type) {
+  e.preventDefault();
+  const form = e.target;
+  const btnId = type === 'resident' ? 'rBtn' : 'bBtn';
+  const btn = document.getElementById(btnId);
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  const data = Object.fromEntries(new FormData(form));
+  data.type = type;
+  data.submitted_at = new Date().toISOString();
+
+  // Save to localStorage immediately as backup
+  try {
+    const k = 'll_' + type;
+    const ex = JSON.parse(localStorage.getItem(k) || '[]');
+    ex.push(data); localStorage.setItem(k, JSON.stringify(ex));
+  } catch(er) {}
+
+  // Try Supabase
+  const table = type === 'resident' ? 'resident_signups' : 'business_signups';
+  try {
+    const res = await fetch(SUPA_URL + '/rest/v1/' + table, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer ' + SUPA_KEY,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) {
+      const err = await res.text();
+      console.error('Supabase error:', res.status, err);
+    } else {
+      console.log('Saved to Supabase ✅');
+    }
+  } catch(err) {
+    console.error('Network error:', err.message);
+  }
+
+  btn.disabled = false;
+  btn.textContent = type === 'resident' ? 'Join LocalLegends — It\'s Free →' : 'Register My Business →';
+
+  // Show success
+  document.getElementById('mBody').style.display = 'none';
+  document.getElementById('mSuc').classList.add('show');
+  if (type === 'resident') {
+    document.getElementById('sucIc').textContent  = '🏘️';
+    document.getElementById('sucTtl').textContent = "You're on the list!";
+    document.getElementById('sucMsg').textContent = "Welcome to LocalLegends! We'll notify you the moment we launch in Electronic City.";
+  } else {
+    document.getElementById('sucIc').textContent  = '🏪';
+    document.getElementById('sucTtl').textContent = 'Business registered!';
+    document.getElementById('sucMsg').textContent = "Thank you! Our team will call you within 24 hours to confirm your listing and help you choose the right plan.";
+  }
+}
+</script>
+</body>
+</html>
