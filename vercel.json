@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/sjr-fiesta", "destination": "/sjr-fiesta/index.html" }
+  ]
+}
