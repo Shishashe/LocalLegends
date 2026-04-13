@@ -1,1 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>LocalLegends — SJR Fiesta Homes</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #FAF7F2; font-family: 'DM Sans', 'Segoe UI', system-ui, sans-serif; }
+  @media (prefers-color-scheme: dark) { body { background: #1A1916; } }
+  #root { max-width: 520px; margin: 0 auto; }
+  @keyframes fadeIn  { from { opacity: 0 } to { opacity: 1 } }
+  @keyframes slideUp { from { transform: translateY(100%) } to { transform: translateY(0) } }
+  .cat-scroll { display: flex; gap: 8px; overflow-x: auto; padding: 0 20px 8px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .cat-scroll::-webkit-scrollbar { display: none; }
+  input::placeholder, textarea::placeholder { color: var(--text-tertiary, #9C9A92); }
+  select { -webkit-appearance: none; appearance: none; }
+</style>
+</head>
+<body>
+<div id="root"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+
+<script type="text/babel">
+const { useState, useEffect, useCallback } = React;
+
+const CATEGORIES = [
+  { id: "all",      label: "All",                  icon: "◉"  },
+  { id: "doctors",  label: "Doctors",               icon: "🏥" },
+  { id: "home",     label: "Home Services",         icon: "🔧" },
+  { id: "food",     label: "Food & Dining",         icon: "🍽" },
+  { id: "education",label: "Education",             icon: "📚" },
+  { id: "grocery",  label: "Grocery",               icon: "🛒" },
+  { id: "fitness",  label: "Fitness",               icon: "💪" },
+  { id: "pets",     label: "Pet Care",              icon: "🐾" },
+  { id: "beauty",   label: "Beauty",                icon: "✂️" },
+  { id: "auto",     label: "Auto & Transport",      icon: "🚗" },
+  { id: "events",   label: "Events & Celebrations", icon: "🎉" },
+  { id: "garden",   label: "Garden & Plants",       icon: "🌿" },
+  { id: "legal",    label: "Legal Services",        icon: "⚖️" },
+  { id: "other",    label: "Other",                 icon: "📌" },
+];
+
+const BLOCKS = ["Alta", "Bella", "Beuna", "Florido", "Fresco", "Magnifica", "Unico", "Vivo"];
+
+const SEED_DATA = [
+  // DERMATOLOGIST
+  { id:"1", name:"Dr. Vishnu", category:"doctors", subcategory:"Dermatologist",
+    location:"Apollo Clinic, Neeladri Road", contact:"",
+    note:"Great for skin issues. Very patient with explanations.",
+    recommender:"Tanveer Singh", upvotes:3, createdAt:"2026-04-12",
+    reviews:[{ id:"r1", author:"Jahnabi", text:"Dr. Vishnu in Apollo. He is the best.", rating:5, createdAt:"2026-04-12" }] },
+
+  // PEDIATRICIANS
+  { id:"2", name:"Dr. Somi Solomon", category:"doctors", subcategory:"Pediatrician",
+    location:"Sacred Oak, Electronic City Phase 2", contact:"",
+    note:"Highly recommended pediatrician at Sacred Oak.",
+    recommender:"Aniket Das", upvotes:3, createdAt:"2026-04-10",
+    reviews:[{ id:"r2", author:"Shruti", text:"Also recommend Dr. Somi. Very good with kids.", rating:5, createdAt:"2026-04-10" }] },
+  { id:"3", name:"Dr. Sudeep Kumar", category:"doctors", subcategory:"Pediatrician",
+    location:"Sacred Oak, Electronic City Phase 2", contact:"",
+    note:"Good pediatrician at Sacred Oak hospital.",
+    recommender:"Anjanee", upvotes:1, createdAt:"2026-04-10", reviews:[] },
+  { id:"4", name:"Dr. Darshan G Hegde", category:"doctors", subcategory:"Pediatrician / PICU",
+    location:"Rainbow Hospital, Electronic City", contact:"18002122",
+    note:"Consulting paediatrician since birth of daughter. Now available full time at Rainbow E-City. MBBS, MD Pediatrics, DNB, DrNB. Mon–Sat 12:30–8PM.",
+    recommender:"Resident", upvotes:2, createdAt:"2026-03-15",
+    reviews:[{ id:"r4", author:"R", text:"I've also consulted with Dr. Darshan for my daughter. He listens carefully, takes time to understand every concern, and gives very thoughtful advice. Highly recommend.", rating:5, createdAt:"2026-03-15" }] },
+
+  // ENT
+  { id:"5", name:"Dr. Geeta N Shapur", category:"doctors", subcategory:"ENT",
+    location:"Kauvery Hospital, E-City", contact:"",
+    note:"Good ENT specialist in E-City.",
+    recommender:"Ishan Saxena", upvotes:1, createdAt:"2026-02-20", reviews:[] },
+  { id:"6", name:"Dr. Himani", category:"doctors", subcategory:"ENT",
+    location:"Kauvery Hospital", contact:"",
+    note:"ENT doctor at Kauvery.",
+    recommender:"Tanveer Singh", upvotes:1, createdAt:"2026-02-20", reviews:[] },
+
+  // GASTRO
+  { id:"7", name:"Dr. Kumar Parth", category:"doctors", subcategory:"Gastroenterologist",
+    location:"Sagar Hospitals", contact:"",
+    note:"Based on numerous online reviews and ratings, he was at the top of my list and I had the best experience, though the hospital is a bit farther away.",
+    recommender:"Shashank Shetty", upvotes:1, createdAt:"2026-02-11", reviews:[] },
+  { id:"8", name:"Dr. Srinivas Bojanapu", category:"doctors", subcategory:"Gastro / Hepatologist",
+    location:"Kauvery Hospital", contact:"",
+    note:"Good diagnosis. He is a hepatologist by specialisation. My mother consulted him for gastro related issue, had a good experience.",
+    recommender:"Ishan Saxena", upvotes:1, createdAt:"2026-02-11", reviews:[] },
+  { id:"9", name:"Dr. Vijay Kumar", category:"doctors", subcategory:"Medical Gastro",
+    location:"KIMS, E-City", contact:"",
+    note:"Medical Gastro specialist at KIMS.",
+    recommender:"Dr. Varsha R. Patil", upvotes:1, createdAt:"2026-02-11", reviews:[] },
+  { id:"10", name:"Dr. Sadiq Sikora", category:"doctors", subcategory:"Surgical Gastro",
+    location:"Sakra Hospital", contact:"",
+    note:"Surgical Gastro specialist.",
+    recommender:"Dr. Varsha R. Patil", upvotes:1, createdAt:"2026-02-11", reviews:[] },
+
+  // GENERAL PHYSICIAN
+  { id:"11", name:"Dr. Bharat", category:"doctors", subcategory:"General Physician",
+    location:"Springleaf Hospital", contact:"",
+    note:"For adults — fever, throat pain consultations.",
+    recommender:"Tanveer Singh", upvotes:1, createdAt:"2026-02-01", reviews:[] },
+  { id:"12", name:"Dr. Vinay", category:"doctors", subcategory:"General Physician",
+    location:"Kauvery Hospital", contact:"",
+    note:"General physician at Kauvery.",
+    recommender:"P S 1", upvotes:1, createdAt:"2026-03-24", reviews:[] },
+
+  // DENTIST
+  { id:"13", name:"Dr. Nikita (Cherish Dental)", category:"doctors", subcategory:"Dentist",
+    location:"SNN Clinic (lives in Fiesta Homes)", contact:"+91 99453 31013",
+    note:"Dr Nikita stays in this apartment and has a clinic in SNN. Got some procedures done and extremely satisfied.",
+    recommender:"Ali Sajjad", upvotes:2, createdAt:"2026-02-15",
+    reviews:[{ id:"r13", author:"Aahana", text:"Also recommend Dr. Nikita's dental clinic.", rating:5, createdAt:"2026-02-15" }] },
+  { id:"14", name:"Shakthi Dental Clinic", category:"doctors", subcategory:"Dentist",
+    location:"Lavakusha Building, 1st Floor, Hosur Rd, Konappana Agrahara", contact:"",
+    note:"4.9 stars with 2670 Google reviews. Highly rated dental clinic.",
+    recommender:"Nikhil Jindal", upvotes:1, createdAt:"2026-02-15", reviews:[] },
+
+  // GYNECOLOGIST
+  { id:"15", name:"Dr. Sapna Raina-Mazumdar", category:"doctors", subcategory:"Gynecologist",
+    location:"Shaw, Narayana, Bommasandra", contact:"",
+    note:"Good gynecologist nearby.",
+    recommender:"Shipra", upvotes:2, createdAt:"2026-04-01",
+    reviews:[{ id:"r15", author:"Shamika", text:"Yes, she is a good doctor.", rating:5, createdAt:"2026-04-01" }] },
+
+  // NEUROLOGIST
+  { id:"16", name:"HSR Neuro Clinic (Dr. Advait Kulkarni)", category:"doctors", subcategory:"Neurologist",
+    location:"3rd Floor, Bhagvathi Hospital, Outer Ring Rd, HSR Layout", contact:"8310021492",
+    note:"4.7 stars (1.1K reviews). For Parkinson's and neurology. 9:30AM–1:30PM & 4:30PM–7:30PM.",
+    recommender:"Pankaj", upvotes:1, createdAt:"2026-04-01", reviews:[] },
+  { id:"17", name:"NIMHANS", category:"doctors", subcategory:"Neurology",
+    location:"Bangalore", contact:"",
+    note:"The doctors there are quite good. For neurologist / Parkinson's.",
+    recommender:"Bani", upvotes:1, createdAt:"2026-04-01", reviews:[] },
+
+  // VACCINATION
+  { id:"18", name:"Springleaf Hospital", category:"doctors", subcategory:"Vaccination",
+    location:"Electronic City", contact:"",
+    note:"For TDAP (Tetanus, Diphtheria, Pertussis) and Influenza vaccination.",
+    recommender:"Ezra Emmanuel", upvotes:1, createdAt:"2026-02-20", reviews:[] },
+  { id:"19", name:"Kauvery Hospital", category:"doctors", subcategory:"Vaccination / General",
+    location:"Electronic City", contact:"",
+    note:"Good for vaccinations too. FH residents get 15% discount for patients under 60 years.",
+    recommender:"Jyotiprakash", upvotes:1, createdAt:"2026-02-20", reviews:[] },
+
+  // EVENTS
+  { id:"20", name:"Sourav Colourful Bloom Decorations", category:"events", subcategory:"Event Decorator",
+    location:"", contact:"+91 93800 41652",
+    note:"Birthday and family celebration decorator.",
+    recommender:"Nikhil Jindal", upvotes:1, createdAt:"2026-04-10", reviews:[] },
+  { id:"21", name:"Yuvrix Birthday Decoration", category:"events", subcategory:"Event Decorator",
+    location:"", contact:"+91 97422 17822",
+    note:"Birthday decoration service. Also: Decoration (+91 74112 04741), Birthday Setup (+91 99728 85921).",
+    recommender:"Ashutosh", upvotes:1, createdAt:"2026-04-10", reviews:[] },
+
+  // GARDEN
+  { id:"22", name:"PCR Garden Mall", category:"garden", subcategory:"Plant Nursery",
+    location:"Electronic City Phase 1", contact:"",
+    note:"Huge collection with car parking. Expensive — you end up spending 5–10k on plants in one visit. 4.0 on Google.",
+    recommender:"Jazib", upvotes:1, createdAt:"2026-03-20", reviews:[] },
+  { id:"23", name:"Sri Krishna Nursery & Farm", category:"garden", subcategory:"Plant Nursery (Wholesale)",
+    location:"Market Road, near Madduramma Temple, Huskur Village", contact:"",
+    note:"Wholesale prices, fewer varieties but half the price of PCR. ₹40 for a money plant with pot. Has parking. 4.7 stars (153 reviews).",
+    recommender:"Mayank", upvotes:1, createdAt:"2026-03-20", reviews:[] },
+
+  // CARPENTERS
+  { id:"24", name:"Carpenter Bangalore", category:"home", subcategory:"Carpenter",
+    location:"Bangalore", contact:"+91 93283 72525",
+    note:"Can make home temple / mandir as per custom design.",
+    recommender:"Shamika Pal", upvotes:1, createdAt:"2026-01-28", reviews:[] },
+  { id:"25", name:"Carpenter Doddanamamgala (Akram)", category:"home", subcategory:"Carpenter",
+    location:"Doddanamamgala", contact:"+91 88675 90070",
+    note:"Local carpenter near the society.",
+    recommender:"Shamika Pal", upvotes:1, createdAt:"2026-01-28", reviews:[] },
+  { id:"26", name:"Carpenter Doddanamamgala", category:"home", subcategory:"Carpenter",
+    location:"Doddanamamgala", contact:"+91 76764 62603",
+    note:"Another local carpenter option.",
+    recommender:"Shamika Pal", upvotes:1, createdAt:"2026-01-28", reviews:[] },
+
+  // GLASS / HOME SERVICES
+  { id:"27", name:"Ranjeet Glass Fitting", category:"home", subcategory:"Glass Fitting",
+    location:"Doddanamamgala", contact:"+91 70529 21655",
+    note:"Glass fitting person working in Fiesta. Recommended for balcony/window glass work.",
+    recommender:"Shamika Pal", upvotes:1, createdAt:"2026-01-28", reviews:[] },
+  { id:"35", name:"Spincycle", category:"home", subcategory:"Dry Cleaner (Pickup)",
+    location:"", contact:"",
+    note:"Pickup dry cleaner service. They have an app for easy booking.",
+    recommender:"Jessica Pusam", upvotes:1, createdAt:"2026-01-28", reviews:[] },
+
+  // LEGAL
+  { id:"28", name:"Adv. Marappa", category:"legal", subcategory:"Lawyer (Civil & Consumer)",
+    location:"Near the park, down the line", contact:"",
+    note:"You can see a board down the line close to the park. For civil and consumer law matters.",
+    recommender:"Ezra Emmanuel", upvotes:1, createdAt:"2026-02-15", reviews:[] },
+
+  // AUTO & TRANSPORT
+  { id:"32", name:"Chandrashekhar (Driver)", category:"auto", subcategory:"Cab / Tour Operator",
+    location:"", contact:"+91 76765 54076",
+    note:"Good for day trips and cab services. 'We've traveled with him quite a few times.'",
+    recommender:"Tanveer Singh", upvotes:1, createdAt:"2026-01-30", reviews:[] },
+  { id:"33", name:"Kishore RNS Motor", category:"auto", subcategory:"RTO Agent",
+    location:"", contact:"",
+    note:"RTO agent who can help pay road tax for cars from other states.",
+    recommender:"Pankaj", upvotes:1, createdAt:"2026-04-01", reviews:[] },
+  { id:"34", name:"FH Om Prakash DK Bike Point", category:"auto", subcategory:"Two-wheeler Repair",
+    location:"Near Fiesta Homes", contact:"",
+    note:"Can come and do puncture repair for scooty at home.",
+    recommender:"Kaushik", upvotes:1, createdAt:"2026-03-24", reviews:[] },
+
+  // OTHER
+  { id:"29", name:"Sri Shiv Shakti Telecom & Electronics", category:"other", subcategory:"Mobile Repair",
+    location:"Doddanagamangala Village", contact:"",
+    note:"Mobile repair shop with Google Maps listing.",
+    recommender:"Abhinav", upvotes:1, createdAt:"2026-01-30", reviews:[] },
+  { id:"30", name:"Ramdev Mobiles", category:"other", subcategory:"Mobile Repair",
+    location:"Near sweet shop, right side", contact:"",
+    note:"Good service for mobile repairs.",
+    recommender:"hrleader_ask", upvotes:1, createdAt:"2026-01-30", reviews:[] },
+  { id:"31", name:"iPremium Care", category:"other", subcategory:"iPhone Repair",
+    location:"", contact:"+91 81977 66654",
+    note:"iPhone specialist. Open 24 hours.",
+    recommender:"Ashish", upvotes:1, createdAt:"2026-01-30", reviews:[] },
+  { id:"36", name:"Jay Mahakal", category:"other", subcategory:"Pooja / Worship Services",
+    location:"", contact:"+91 98458 27212",
+    note:"Pooja and worship services.",
+    recommender:"Ashutosh", upvotes:1, createdAt:"2026-03-24", reviews:[] },
+];
+
+function timeAgo(dateStr) {
+  const days = Math.floor((new Date() - new Date(dateStr)) / 86400000);
+  if (days === 0) return "Today";
+  if (days === 1) return "Yesterday";
+  if (days < 7) return `${days}d ago`;
+  if (days < 30) return `${Math.floor(days/7)}w ago`;
+  return `${Math.floor(days/30)}mo ago`;
+}
+
+function Stars({ rating, size=14, onSelect }) {
+  return (
+    <div style={{display:"flex",gap:2}}>
+      {[1,2,3,4,5].map(s=>(
+        <span key={s} onClick={onSelect ? ()=>onSelect(s) : undefined}
+          style={{fontSize:size, cursor:onSelect?"pointer":"default", color:s<=rating?"#EF9F27":"var(--border)", transition:"color 0.15s"}}>★</span>
+      ))}
+    </div>
+  );
+}
+
+function NameBlockFields({ name, block, flat, onUpdate, inputStyle, labelStyle }) {
+  return (
+    <>
+      <div>
+        <label style={labelStyle}>Your name *</label>
+        <input style={inputStyle} placeholder="e.g. Rahul" value={name}
+          onChange={e=>onUpdate("name",e.target.value)}
+          onFocus={e=>{e.target.style.borderColor="var(--accent)"}}
+          onBlur={e=>{e.target.style.borderColor="var(--border)"}} />
+      </div>
+      <div style={{display:"flex",gap:10}}>
+        <div style={{flex:1}}>
+          <label style={labelStyle}>Block *</label>
+          <select style={{...inputStyle,cursor:"pointer"}} value={block} onChange={e=>onUpdate("block",e.target.value)}>
+            <option value="">Select block</option>
+            {BLOCKS.map(b=><option key={b} value={b}>{b}</option>)}
+          </select>
+        </div>
+        <div style={{flex:1}}>
+          <label style={labelStyle}>Flat number *</label>
+          <input style={inputStyle} placeholder="e.g. 304" value={flat}
+            onChange={e=>onUpdate("flat",e.target.value.replace(/[^0-9]/g,""))}
+            inputMode="numeric"
+            onFocus={e=>{e.target.style.borderColor="var(--accent)"}}
+            onBlur={e=>{e.target.style.borderColor="var(--border)"}} />
+        </div>
+      </div>
+    </>
+  );
+}
+
+function ReviewItem({ review }) {
+  return (
+    <div style={{padding:"12px 0",borderBottom:"1px solid var(--border-light)"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <span style={{fontSize:13,fontWeight:600,color:"var(--text-primary)"}}>👤 {review.author}</span>
+          <Stars rating={review.rating} size={12} />
+        </div>
+        <span style={{fontSize:11,color:"var(--text-tertiary)"}}>{timeAgo(review.createdAt)}</span>
+      </div>
+      <p style={{margin:"4px 0 0",fontSize:13,lineHeight:1.5,color:"var(--text-secondary)"}}>{review.text}</p>
+    </div>
+  );
+}
+
+function ReviewSheet({ rec, onClose, onAddReview, onQuickVouch }) {
+  const [mode,setMode] = useState("view");
+  const [reviewText,setReviewText] = useState("");
+  const [rating,setRating] = useState(5);
+  const [authorName,setAuthorName] = useState("");
+  const [authorBlock,setAuthorBlock] = useState("");
+  const [authorFlat,setAuthorFlat] = useState("");
+
+  const cat = CATEGORIES.find(c=>c.id===rec.category);
+  const reviews = rec.reviews || [];
+  const avgRating = reviews.length>0 ? (reviews.reduce((s,r)=>s+r.rating,0)/reviews.length).toFixed(1) : null;
+  const canSubmit = reviewText.trim() && authorName.trim() && authorBlock && authorFlat.trim();
+
+  const submitReview = () => {
+    if (!canSubmit) return;
+    const author = [authorName.trim(), authorBlock && authorFlat ? `${authorBlock}-${authorFlat}` : authorBlock].filter(Boolean).join(", ");
+    onAddReview(rec.id, { id:`r-${Date.now()}`, author, text:reviewText.trim(), rating, createdAt:new Date().toISOString().split("T")[0] });
+    setMode("view"); setReviewText(""); setRating(5); setAuthorName(""); setAuthorBlock(""); setAuthorFlat("");
+  };
+
+  const inputStyle = { width:"100%", padding:"12px 14px", fontSize:15, border:"1.5px solid var(--border)", borderRadius:10, background:"var(--input-bg)", color:"var(--text-primary)", outline:"none", boxSizing:"border-box", transition:"border-color 0.2s" };
+  const labelStyle = { display:"block", fontSize:13, fontWeight:600, color:"var(--text-secondary)", marginBottom:6 };
+  const handle = (f,v) => { if(f==="name") setAuthorName(v); else if(f==="block") setAuthorBlock(v); else setAuthorFlat(v); };
+
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",display:"flex",alignItems:"flex-end",justifyContent:"center",zIndex:1000,animation:"fadeIn 0.2s ease"}} onClick={onClose}>
+      <div style={{background:"var(--card-bg)",borderRadius:"20px 20px 0 0",padding:"20px 20px 40px",width:"100%",maxWidth:480,maxHeight:"90vh",overflowY:"auto",animation:"slideUp 0.3s ease"}} onClick={e=>e.stopPropagation()}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16}}>
+          <div style={{flex:1}}>
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              <span style={{fontSize:20}}>{cat?.icon}</span>
+              <h2 style={{margin:0,fontSize:19,fontWeight:700,color:"var(--text-primary)"}}>{rec.name}</h2>
+            </div>
+            <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:8}}>
+              <span style={{fontSize:12,fontWeight:600,padding:"3px 10px",borderRadius:20,background:"var(--tag-bg)",color:"var(--tag-text)"}}>{rec.subcategory || cat?.label}</span>
+              {rec.location && <span style={{fontSize:12,fontWeight:600,padding:"3px 10px",borderRadius:20,background:"var(--loc-bg)",color:"var(--loc-text)"}}>📍 {rec.location}</span>}
+            </div>
+            {rec.contact && <div style={{fontSize:13,color:"var(--accent)",marginTop:8,fontWeight:500}}>📞 {rec.contact}</div>}
+          </div>
+          <button onClick={onClose} style={{background:"none",border:"none",fontSize:24,color:"var(--text-tertiary)",cursor:"pointer",padding:4}}>✕</button>
+        </div>
+
+        <div style={{background:"var(--rec-bg)",borderRadius:10,padding:"12px 14px",borderLeft:"3px solid var(--accent)",marginBottom:16}}>
+          <p style={{margin:"0 0 6px",fontSize:14,lineHeight:1.5,color:"var(--text-secondary)"}}>"{rec.note}"</p>
+          <span style={{fontSize:12,color:"var(--text-tertiary)",fontWeight:500}}>— {rec.recommender} · {timeAgo(rec.createdAt)}</span>
+        </div>
+
+        <div style={{display:"flex",gap:16,marginBottom:16,padding:"10px 0",borderBottom:"1px solid var(--border-light)"}}>
+          <div style={{textAlign:"center"}}><div style={{fontSize:20,fontWeight:700,color:"var(--accent)"}}>{rec.upvotes}</div><div style={{fontSize:11,color:"var(--text-tertiary)",fontWeight:500}}>upvotes</div></div>
+          <div style={{textAlign:"center"}}><div style={{fontSize:20,fontWeight:700,color:"var(--text-primary)"}}>{reviews.length}</div><div style={{fontSize:11,color:"var(--text-tertiary)",fontWeight:500}}>reviews</div></div>
+          {avgRating && <div style={{textAlign:"center"}}><div style={{fontSize:20,fontWeight:700,color:"#EF9F27"}}>{avgRating}</div><div style={{fontSize:11,color:"var(--text-tertiary)",fontWeight:500}}>avg rating</div></div>}
+        </div>
+
+        <div style={{display:"flex",gap:8,marginBottom:16}}>
+          <button onClick={()=>onQuickVouch(rec.id)}
+            style={{flex:1,padding:"10px",fontSize:14,fontWeight:600,border:"1.5px solid var(--border)",borderRadius:10,background:"var(--card-bg)",color:"var(--text-primary)",cursor:"pointer"}}
+            onMouseEnter={e=>{e.currentTarget.style.borderColor="var(--accent)";e.currentTarget.style.background="var(--upvote-bg)"}}
+            onMouseLeave={e=>{e.currentTarget.style.borderColor="var(--border)";e.currentTarget.style.background="var(--card-bg)"}}>
+            👍 They helped me too
+          </button>
+          <button onClick={()=>setMode("write")}
+            style={{flex:1,padding:"10px",fontSize:14,fontWeight:600,border:"none",borderRadius:10,background:"var(--accent)",color:"#fff",cursor:"pointer"}}>
+            ✍️ Write a review
+          </button>
+        </div>
+
+        {mode==="write" && (
+          <div style={{background:"var(--rec-bg)",borderRadius:12,padding:"16px",marginBottom:16,animation:"fadeIn 0.2s ease"}}>
+            <h4 style={{margin:"0 0 12px",fontSize:15,fontWeight:600,color:"var(--text-primary)"}}>Share your experience</h4>
+            <div style={{display:"flex",flexDirection:"column",gap:12}}>
+              <div><label style={labelStyle}>Your rating</label><Stars rating={rating} size={24} onSelect={setRating} /></div>
+              <div><label style={labelStyle}>Your experience *</label>
+                <textarea value={reviewText} onChange={e=>setReviewText(e.target.value)} placeholder="What was good? Any tips?"
+                  style={{...inputStyle,minHeight:80,resize:"vertical",fontFamily:"inherit"}}
+                  onFocus={e=>{e.target.style.borderColor="var(--accent)"}} onBlur={e=>{e.target.style.borderColor="var(--border)"}} />
+              </div>
+              <NameBlockFields name={authorName} block={authorBlock} flat={authorFlat} onUpdate={handle} inputStyle={inputStyle} labelStyle={labelStyle} />
+              <div style={{display:"flex",gap:8}}>
+                <button onClick={()=>setMode("view")} style={{padding:"10px 18px",fontSize:14,fontWeight:600,border:"none",borderRadius:10,background:"var(--chip-bg)",color:"var(--text-primary)",cursor:"pointer"}}>Cancel</button>
+                <button onClick={submitReview} disabled={!canSubmit}
+                  style={{flex:1,padding:"10px",fontSize:14,fontWeight:600,border:"none",borderRadius:10,cursor:canSubmit?"pointer":"not-allowed",background:canSubmit?"var(--accent)":"var(--text-tertiary)",color:"#fff",opacity:canSubmit?1:0.6}}>
+                  Submit review
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div>
+          <h4 style={{margin:"0 0 4px",fontSize:15,fontWeight:600,color:"var(--text-primary)"}}>Neighbour reviews {reviews.length>0 && `(${reviews.length})`}</h4>
+          {reviews.length===0
+            ? <div style={{padding:"24px 0",textAlign:"center"}}><p style={{fontSize:14,color:"var(--text-tertiary)",margin:0}}>No reviews yet — be the first!</p></div>
+            : reviews.map(r=><ReviewItem key={r.id} review={r} />)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function RecCard({ rec, onUpvote, onTap }) {
+  const cat = CATEGORIES.find(c=>c.id===rec.category);
+  const reviews = rec.reviews || [];
+  const avgRating = reviews.length>0 ? (reviews.reduce((s,r)=>s+r.rating,0)/reviews.length).toFixed(1) : null;
+  return (
+    <div onClick={()=>onTap(rec)}
+      style={{background:"var(--card-bg)",borderRadius:14,padding:"18px 20px",border:"1px solid var(--border)",transition:"box-shadow 0.2s",cursor:"pointer"}}
+      onMouseEnter={e=>{e.currentTarget.style.boxShadow="0 2px 12px rgba(0,0,0,0.06)"}}
+      onMouseLeave={e=>{e.currentTarget.style.boxShadow="none"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:12}}>
+        <div style={{flex:1}}>
+          <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+            <span style={{fontSize:20}}>{cat?.icon}</span>
+            <h3 style={{margin:0,fontSize:17,fontWeight:600,color:"var(--text-primary)",letterSpacing:"-0.01em"}}>{rec.name}</h3>
+          </div>
+          <div style={{display:"flex",gap:6,flexWrap:"wrap",margin:"8px 0"}}>
+            <span style={{background:"var(--tag-bg)",color:"var(--tag-text)",fontSize:12,fontWeight:500,padding:"3px 10px",borderRadius:20}}>{rec.subcategory || cat?.label}</span>
+            {rec.location && <span style={{background:"var(--loc-bg)",color:"var(--loc-text)",fontSize:12,fontWeight:500,padding:"3px 10px",borderRadius:20}}>📍 {rec.location}</span>}
+          </div>
+        </div>
+        <button onClick={e=>{e.stopPropagation();onUpvote(rec.id)}}
+          style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"var(--upvote-bg)",border:"1px solid var(--upvote-border)",borderRadius:10,padding:"8px 12px",cursor:"pointer",transition:"all 0.15s",minWidth:44}}
+          onMouseEnter={e=>{e.currentTarget.style.background="var(--upvote-hover)"}}
+          onMouseLeave={e=>{e.currentTarget.style.background="var(--upvote-bg)"}}>
+          <span style={{fontSize:16,lineHeight:1}}>▲</span>
+          <span style={{fontSize:14,fontWeight:600,color:"var(--accent)"}}>{rec.upvotes}</span>
+        </button>
+      </div>
+      {rec.note && <p style={{margin:"10px 0 0",fontSize:14,lineHeight:1.55,color:"var(--text-secondary)",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>"{rec.note}"</p>}
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:12,paddingTop:10,borderTop:"1px solid var(--border-light)"}}>
+        <span style={{fontSize:13,color:"var(--text-tertiary)",fontWeight:500}}>👤 {rec.recommender}</span>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          {reviews.length>0 && <span style={{display:"flex",alignItems:"center",gap:4,fontSize:12,color:"var(--text-tertiary)",fontWeight:500}}><span style={{color:"#EF9F27"}}>★ {avgRating}</span> · {reviews.length} review{reviews.length!==1?"s":""}</span>}
+          <span style={{fontSize:12,color:"var(--text-tertiary)"}}>{timeAgo(rec.createdAt)}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AddForm({ onAdd, onClose }) {
+  const [form,setForm] = useState({name:"",category:"doctors",subcategory:"",location:"",contact:"",note:"",authorName:"",authorBlock:"",authorFlat:""});
+  const update = (k,v) => setForm(p=>({...p,[k]:v}));
+  const canSubmit = form.name.trim() && form.authorName.trim() && form.authorBlock && form.authorFlat.trim();
+
+  const submit = () => {
+    if (!canSubmit) return;
+    const author = [form.authorName.trim(), form.authorBlock && form.authorFlat ? `${form.authorBlock}-${form.authorFlat}` : form.authorBlock].filter(Boolean).join(", ");
+    onAdd({ id:Date.now().toString(), name:form.name, category:form.category, subcategory:form.subcategory, location:form.location, contact:form.contact, note:form.note, recommender:author, upvotes:1, createdAt:new Date().toISOString().split("T")[0], reviews:[] });
+    onClose();
+  };
+
+  const inputStyle = {width:"100%",padding:"12px 14px",fontSize:15,border:"1.5px solid var(--border)",borderRadius:10,background:"var(--input-bg)",color:"var(--text-primary)",outline:"none",boxSizing:"border-box",transition:"border-color 0.2s"};
+  const labelStyle = {display:"block",fontSize:13,fontWeight:600,color:"var(--text-secondary)",marginBottom:6};
+  const handle = (f,v) => { if(f==="name") update("authorName",v); else if(f==="block") update("authorBlock",v); else update("authorFlat",v); };
+
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",display:"flex",alignItems:"flex-end",justifyContent:"center",zIndex:1000,animation:"fadeIn 0.2s ease"}} onClick={onClose}>
+      <div style={{background:"var(--card-bg)",borderRadius:"20px 20px 0 0",padding:"24px 20px 40px",width:"100%",maxWidth:480,maxHeight:"88vh",overflowY:"auto",animation:"slideUp 0.3s ease"}} onClick={e=>e.stopPropagation()}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+          <h2 style={{margin:0,fontSize:20,fontWeight:700,color:"var(--text-primary)"}}>Add a recommendation</h2>
+          <button onClick={onClose} style={{background:"none",border:"none",fontSize:24,color:"var(--text-tertiary)",cursor:"pointer",padding:4}}>✕</button>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:16}}>
+          <div><label style={labelStyle}>Business / Provider name *</label>
+            <input style={inputStyle} placeholder="e.g. Dr. Vishnu, Srinivas Electricals" value={form.name} onChange={e=>update("name",e.target.value)} onFocus={e=>{e.target.style.borderColor="var(--accent)"}} onBlur={e=>{e.target.style.borderColor="var(--border)"}} /></div>
+          <div><label style={labelStyle}>Category</label>
+            <select style={{...inputStyle,cursor:"pointer"}} value={form.category} onChange={e=>update("category",e.target.value)}>
+              {CATEGORIES.filter(c=>c.id!=="all").map(c=><option key={c.id} value={c.id}>{c.icon} {c.label}</option>)}
+            </select></div>
+          <div><label style={labelStyle}>Specialty / Type</label>
+            <input style={inputStyle} placeholder="e.g. Dermatologist, Plumber" value={form.subcategory} onChange={e=>update("subcategory",e.target.value)} onFocus={e=>{e.target.style.borderColor="var(--accent)"}} onBlur={e=>{e.target.style.borderColor="var(--border)"}} /></div>
+          <div><label style={labelStyle}>Location / Address</label>
+            <input style={inputStyle} placeholder="e.g. Apollo Clinic, Neeladri Road" value={form.location} onChange={e=>update("location",e.target.value)} onFocus={e=>{e.target.style.borderColor="var(--accent)"}} onBlur={e=>{e.target.style.borderColor="var(--border)"}} /></div>
+          <div><label style={labelStyle}>Contact number</label>
+            <input style={inputStyle} placeholder="e.g. +91 98765 43210" value={form.contact} onChange={e=>update("contact",e.target.value)} inputMode="tel" onFocus={e=>{e.target.style.borderColor="var(--accent)"}} onBlur={e=>{e.target.style.borderColor="var(--border)"}} /></div>
+          <div><label style={labelStyle}>Why do you recommend them?</label>
+            <textarea style={{...inputStyle,minHeight:80,resize:"vertical",fontFamily:"inherit"}} placeholder="What was your experience?" value={form.note} onChange={e=>update("note",e.target.value)} onFocus={e=>{e.target.style.borderColor="var(--accent)"}} onBlur={e=>{e.target.style.borderColor="var(--border)"}} /></div>
+          <div style={{borderTop:"1px solid var(--border)",paddingTop:4}}>
+            <p style={{margin:"0 0 12px",fontSize:14,fontWeight:600,color:"var(--text-primary)"}}>Your details</p>
+          </div>
+          <NameBlockFields name={form.authorName} block={form.authorBlock} flat={form.authorFlat} onUpdate={handle} inputStyle={inputStyle} labelStyle={labelStyle} />
+          <button onClick={submit} disabled={!canSubmit}
+            style={{width:"100%",padding:"14px",fontSize:16,fontWeight:600,color:"#fff",background:canSubmit?"var(--accent)":"var(--text-tertiary)",border:"none",borderRadius:12,cursor:canSubmit?"pointer":"not-allowed",opacity:canSubmit?1:0.6,marginTop:4}}>
+            Add recommendation
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [recs,setRecs] = useState(SEED_DATA);
+  const [filter,setFilter] = useState("all");
+  const [search,setSearch] = useState("");
+  const [showAdd,setShowAdd] = useState(false);
+  const [activeRec,setActiveRec] = useState(null);
+  const [loaded,setLoaded] = useState(false);
+
+  // Load from localStorage on mount
+  useEffect(()=>{
+    try {
+      const saved = localStorage.getItem("ll-recs-v2");
+      if (saved) setRecs(JSON.parse(saved));
+    } catch(e) {}
+    setLoaded(true);
+  },[]);
+
+  // Save to localStorage whenever recs change
+  useEffect(()=>{
+    if (!loaded) return;
+    try { localStorage.setItem("ll-recs-v2", JSON.stringify(recs)); } catch(e) {}
+  },[recs,loaded]);
+
+  const addRec    = useCallback(rec=>setRecs(p=>[rec,...p]),[]);
+  const upvote    = useCallback(id=>setRecs(p=>p.map(r=>r.id===id?{...r,upvotes:r.upvotes+1}:r)),[]);
+  const addReview = useCallback((recId,review)=>{
+    setRecs(p=>p.map(r=>r.id===recId?{...r,reviews:[...(r.reviews||[]),review]}:r));
+    setActiveRec(p=>p&&p.id===recId?{...p,reviews:[...(p.reviews||[]),review]}:p);
+  },[]);
+  const quickVouch = useCallback(recId=>{
+    setRecs(p=>p.map(r=>r.id===recId?{...r,upvotes:r.upvotes+1}:r));
+    setActiveRec(p=>p&&p.id===recId?{...p,upvotes:p.upvotes+1}:p);
+  },[]);
+
+  const catCounts = {};
+  recs.forEach(r=>{ catCounts[r.category]=(catCounts[r.category]||0)+1; });
+  const sortedCategories = [
+    CATEGORIES[0],
+    ...CATEGORIES.slice(1).filter(c=>catCounts[c.id]>0).sort((a,b)=>(catCounts[b.id]||0)-(catCounts[a.id]||0)),
+    ...CATEGORIES.slice(1).filter(c=>!catCounts[c.id]),
+  ];
+
+  const q = search.toLowerCase();
+  const filtered = recs
+    .filter(r=>filter==="all"||r.category===filter)
+    .filter(r=>!q||r.name.toLowerCase().includes(q)||(r.subcategory||"").toLowerCase().includes(q)||(r.location||"").toLowerCase().includes(q)||(r.note||"").toLowerCase().includes(q))
+    .sort((a,b)=>b.upvotes-a.upvotes);
+
+  const CSS_VARS = `
+    :root {
+      --accent:#1A56DB; --card-bg:#FFFFFF; --page-bg:#F5F7FF; --input-bg:#FFFFFF;
+      --text-primary:#1A1A18; --text-secondary:#5C5B56; --text-tertiary:#9C9A92;
+      --border:#E2E8F4; --border-light:#EEF1F9;
+      --tag-bg:#EDE7F6; --tag-text:#5E3A9E;
+      --loc-bg:#E8F5E9; --loc-text:#2E7D32;
+      --upvote-bg:#EEF3FD; --upvote-border:#C7D8F8; --upvote-hover:#E0EAFC;
+      --chip-bg:#EEF1F9; --chip-active-bg:#1A56DB; --chip-active-text:#FFFFFF; --chip-text:#5C5B56;
+      --header-bg:#1A56DB; --rec-bg:#F5F7FF;
+    }
+    @media(prefers-color-scheme:dark){:root{
+      --accent:#4D7FE8; --card-bg:#1E2235; --page-bg:#13162B; --input-bg:#252A40;
+      --text-primary:#E8EAF4; --text-secondary:#9EA8C8; --text-tertiary:#636A88;
+      --border:#2D3350; --border-light:#252A40;
+      --tag-bg:#2D2540; --tag-text:#C4A6F0;
+      --loc-bg:#1C3020; --loc-text:#7DC882;
+      --upvote-bg:#1E2540; --upvote-border:#2D3A5C; --upvote-hover:#253050;
+      --chip-bg:#252A40; --chip-active-bg:#4D7FE8; --chip-active-text:#FFFFFF; --chip-text:#9EA8C8;
+      --header-bg:#1A3A8F; --rec-bg:#191D30;
+    }}
+  `;
+
+  return (
+    <div style={{maxWidth:520,margin:"0 auto",minHeight:"100vh",fontFamily:"'DM Sans','Segoe UI',system-ui,sans-serif"}}>
+      <style>{CSS_VARS}</style>
+
+      {/* Header */}
+      <div style={{background:"var(--header-bg)",padding:"28px 20px 48px",borderRadius:"0 0 24px 24px",position:"relative"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div>
+            <h1 style={{margin:0,fontSize:24,fontWeight:700,color:"#FFFFFF",letterSpacing:"-0.02em"}}>LocalLegends</h1>
+            <p style={{margin:"4px 0 0",fontSize:13,color:"rgba(255,255,255,0.75)",fontWeight:500}}>SJR Fiesta Homes · E-City Phase 2</p>
+          </div>
+          <div style={{background:"rgba(255,255,255,0.2)",borderRadius:10,padding:"6px 12px",fontSize:13,fontWeight:600,color:"#fff"}}>{recs.length} recs</div>
+        </div>
+        <div style={{position:"absolute",bottom:-22,left:16,right:16}}>
+          <input type="text" placeholder="Search doctors, plumbers, events…" value={search} onChange={e=>setSearch(e.target.value)}
+            style={{width:"100%",padding:"14px 16px 14px 42px",fontSize:15,border:"1.5px solid var(--border)",borderRadius:14,background:"var(--card-bg)",color:"var(--text-primary)",outline:"none",boxShadow:"0 4px 20px rgba(0,0,0,0.06)",boxSizing:"border-box"}} />
+          <span style={{position:"absolute",left:16,top:"50%",transform:"translateY(-50%)",fontSize:16,opacity:0.4}}>🔍</span>
+        </div>
+      </div>
+
+      {/* Category chips */}
+      <div style={{marginTop:36,position:"relative"}}>
+        <div className="cat-scroll">
+          {sortedCategories.map(cat=>{
+            const count = cat.id==="all" ? recs.length : (catCounts[cat.id]||0);
+            const isEmpty = cat.id!=="all" && count===0;
+            return (
+              <button key={cat.id} onClick={()=>setFilter(cat.id)} style={{display:"flex",alignItems:"center",gap:6,padding:"8px 14px",fontSize:13,fontWeight:600,border:"none",borderRadius:20,cursor:"pointer",whiteSpace:"nowrap",transition:"all 0.15s",opacity:isEmpty?0.4:1,background:filter===cat.id?"var(--chip-active-bg)":"var(--chip-bg)",color:filter===cat.id?"var(--chip-active-text)":"var(--chip-text)"}}>
+                <span style={{fontSize:14}}>{cat.icon}</span>
+                {cat.label}
+                {count>0 && <span style={{fontSize:11,fontWeight:700,minWidth:18,height:18,display:"flex",alignItems:"center",justifyContent:"center",borderRadius:9,padding:"0 5px",background:filter===cat.id?"rgba(255,255,255,0.25)":"var(--border)",color:filter===cat.id?"#fff":"var(--text-tertiary)"}}>{count}</span>}
+              </button>
+            );
+          })}
+        </div>
+        <div style={{position:"absolute",right:0,top:0,bottom:8,width:40,background:"linear-gradient(to right,transparent,var(--page-bg))",pointerEvents:"none"}} />
+      </div>
+
+      {/* Cards */}
+      <div style={{padding:"12px 16px 100px",display:"flex",flexDirection:"column",gap:12}}>
+        {filtered.length===0
+          ? <div style={{textAlign:"center",padding:"48px 20px",color:"var(--text-tertiary)"}}>
+              <div style={{fontSize:40,marginBottom:12}}>🏘️</div>
+              <p style={{fontSize:16,fontWeight:600,margin:"0 0 6px",color:"var(--text-secondary)"}}>No recommendations found</p>
+              <p style={{fontSize:14,margin:0}}>Try a different search or category.</p>
+            </div>
+          : filtered.map(rec=><RecCard key={rec.id} rec={rec} onUpvote={upvote} onTap={setActiveRec} />)
+        }
+      </div>
+
+      {/* FAB */}
+      <button onClick={()=>setShowAdd(true)}
+        style={{position:"fixed",bottom:24,right:24,width:56,height:56,borderRadius:16,background:"var(--accent)",color:"#fff",border:"none",fontSize:28,cursor:"pointer",boxShadow:"0 4px 16px rgba(26,86,219,0.40)",display:"flex",alignItems:"center",justifyContent:"center",transition:"transform 0.15s",zIndex:100}}
+        onMouseEnter={e=>{e.currentTarget.style.transform="scale(1.08)"}}
+        onMouseLeave={e=>{e.currentTarget.style.transform="scale(1)"}}>+</button>
+
+      {showAdd   && <AddForm onAdd={addRec} onClose={()=>setShowAdd(false)} />}
+      {activeRec && <ReviewSheet rec={activeRec} onClose={()=>setActiveRec(null)} onAddReview={addReview} onQuickVouch={quickVouch} />}
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App />);
+</script>
+</body>
+</html>
